@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.foundation.clickable
 import com.agroconnect.data.AgroRepository
 import com.agroconnect.data.SupabaseClient
 import com.agroconnect.models.Crop
@@ -77,6 +78,37 @@ fun MarketplaceScreen(navController: NavController) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Marketplace", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            
+            // Cart badge
+            var cartCount by remember { mutableIntStateOf(0) }
+            LaunchedEffect(currentUserId) {
+                if (currentUserId != null) {
+                    try {
+                        val count = AgroRepository.getCartItems(currentUserId).size
+                        cartCount = count
+                    } catch (e: Exception) {}
+                }
+            }
+            
+            BadgedBox(
+                badge = {
+                    if (cartCount > 0) {
+                        Badge { Text("$cartCount") }
+                    }
+                }
+            ) {
+                IconButton(onClick = { navController.navigate(Screen.Cart.route) }) {
+                    Icon(Icons.Filled.ShoppingCart, contentDescription = "Cart")
+                }
+            }
+        }
+
         // Tab Row
         TabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { index, title ->
@@ -166,6 +198,7 @@ fun MarketplaceScreen(navController: NavController) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        modifier = Modifier.clickable { navController.navigate(Screen.ListingDetail.createRoute(listing.listingId)) }
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.Top) {

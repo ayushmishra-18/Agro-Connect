@@ -148,6 +148,16 @@ fun AgroConnectApp() {
             composable(Screen.Predictions.route) { PredictionsScreen() }
             composable(Screen.Marketplace.route) { MarketplaceScreen(navController) }
             composable(Screen.CreateListing.route) { CreateListingScreen(navController) }
+            composable(
+                route = Screen.ListingDetail.route,
+                arguments = listOf(androidx.navigation.navArgument("listingId") { type = androidx.navigation.NavType.LongType })
+            ) { backStackEntry ->
+                val listingId = backStackEntry.arguments?.getLong("listingId") ?: 0L
+                ListingDetailScreen(navController, listingId)
+            }
+            composable(Screen.Cart.route) { CartScreen(navController) }
+            composable(Screen.Checkout.route) { CheckoutScreen(navController) }
+            composable(Screen.Orders.route) { OrdersScreen(navController) }
             composable(Screen.Weather.route) { WeatherScreen() }
             composable(Screen.Advisories.route) { AdvisoriesScreen() }
             composable(Screen.Settings.route) { SettingsScreen(navController) }
