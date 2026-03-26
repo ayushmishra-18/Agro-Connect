@@ -1,12 +1,14 @@
 package com.agroconnect.data
 
+import android.content.Context
 import android.util.Log
+import com.agroconnect.db.*
 import com.agroconnect.models.*
 import io.github.jan.supabase.functions.functions
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import io.ktor.client.call.*
-import io.ktor.http.*
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -17,6 +19,13 @@ object AgroRepository {
 
     private val client = SupabaseClient.client
     private val json = Json { ignoreUnknownKeys = true }
+    private var db: AppDatabase? = null
+
+    fun init(context: Context) {
+        if (db == null) {
+            db = AppDatabase.getDatabase(context)
+        }
+    }
 
     // ─── Crops ───
     suspend fun getCrops(): List<Crop> {
@@ -31,9 +40,16 @@ object AgroRepository {
     // ─── Mandis ───
     suspend fun getMandis(userLat: Double? = null, userLon: Double? = null): List<Mandi> {
         Log.d(TAG, "getMandis() → querying c_mandis...")
-        val result = client.postgrest["c_mandis"]
-            .select()
-            .decodeList<Mandi>()
+        val localMandis = db?.mandiDao()?.getAllMandis()?.firstOrNull()?.map { it.toModel() } ?: emptyList()
+        
+        val result = try {
+            val remote = client.postgrest["c_mandis"].select().decodeList<Mandi>()
+            db?.mandiDao()?.insertAll(remote.map { MandiEntity.fromModel(it) })
+            remote
+        } catch (e: Exception) {
+            Log.e(TAG, "getMandis network failed, using local", e)
+            localMandis
+        }
         
         return if (userLat != null && userLon != null) {
             result.sortedBy { mandi ->
@@ -88,47 +104,68 @@ object AgroRepository {
     // ─── Advisories ───
     suspend fun getAdvisories(type: String? = null): List<Advisory> {
         Log.d(TAG, "getAdvisories(type=$type) → querying a_advisories...")
-        val result = client.postgrest["a_advisories"]
-            .select {
-                if (type != null) {
-                    filter { eq("advisory_type", type) }
-                }
+        val localAdvisories = db?.advisoryDao()?.getAllAdvisories()?.firstOrNull()?.map { it.toModel() } ?: emptyList()
+        
+        val allAdvisories = try {
+            val remote = client.postgrest["a_advisories"].select {
                 order("urgency", Order.ASCENDING)
-            }
-            .decodeList<Advisory>()
-        Log.d(TAG, "getAdvisories() → got ${result.size} rows")
-        return result
+            }.decodeList<Advisory>()
+            db?.advisoryDao()?.insertAll(remote.map { AdvisoryEntity.fromModel(it) })
+            remote
+        } catch (e: Exception) {
+            Log.e(TAG, "getAdvisories network failed, using local", e)
+            localAdvisories
+        }
+        
+        return if (type != null) {
+            allAdvisories.filter { it.advisoryType == type }
+        } else {
+            allAdvisories
+        }
     }
 
     // ─── Predictions (Edge Function) ───
     suspend fun getPredictions(cropId: Int, mandiId: Int): PredictionResponse {
         Log.d(TAG, "getPredictions(cropId=$cropId, mandiId=$mandiId) → invoking edge function...")
-        val body = buildJsonObject {
-            put("crop_id", cropId)
-            put("mandi_id", mandiId)
+        return try {
+            val body = buildJsonObject {
+                put("crop_id", cropId)
+                put("mandi_id", mandiId)
+            }
+            val response = client.functions.invoke(
+                function = "predict-prices",
+                body = body,
+            )
+            val bodyStr = response.body<String>()
+            val prediction = json.decodeFromString<PredictionResponse>(bodyStr)
+            db?.predictionDao()?.insertPrediction(PredictionEntity.fromModel(prediction, cropId, mandiId))
+            prediction
+        } catch (e: Exception) {
+            Log.e(TAG, "getPredictions network failed", e)
+            val local = db?.predictionDao()?.getPrediction(cropId, mandiId)?.firstOrNull()?.toModel()
+            local ?: throw e
         }
-        val response = client.functions.invoke(
-            function = "predict-prices",
-            body = body,
-        )
-        val bodyStr = response.body<String>()
-        Log.d(TAG, "getPredictions() → response: ${bodyStr.take(200)}")
-        return json.decodeFromString<PredictionResponse>(bodyStr)
     }
 
     // ─── Weather (Edge Function) ───
     suspend fun getWeather(lat: Double, lon: Double): WeatherResponse {
         Log.d(TAG, "getWeather(lat=$lat, lon=$lon) → invoking edge function...")
-        val response = client.functions.invoke(
-            function = "weather-proxy",
-            body = buildJsonObject {
-                put("lat", lat)
-                put("lon", lon)
-            },
-        )
-        val bodyStr = response.body<String>()
-        Log.d(TAG, "getWeather() → response: ${bodyStr.take(200)}")
-        return json.decodeFromString<WeatherResponse>(bodyStr)
+        return try {
+            val response = client.functions.invoke(
+                function = "weather-proxy",
+                body = buildJsonObject {
+                    put("lat", lat)
+                    put("lon", lon)
+                },
+            )
+            val bodyStr = response.body<String>()
+            val weather = json.decodeFromString<WeatherResponse>(bodyStr)
+            db?.weatherDao()?.insertWeather(WeatherEntity.fromModel(weather))
+            weather
+        } catch (e: Exception) {
+            Log.e(TAG, "getWeather network failed", e)
+            throw e
+        }
     }
 
     // ─── Profile ───

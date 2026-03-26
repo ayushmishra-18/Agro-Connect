@@ -30,6 +30,23 @@ class MainActivity : ComponentActivity() {
         // Handle deep link redirect from Supabase Auth
         com.agroconnect.data.SupabaseClient.client.handleDeeplinks(intent)
         
+        // Initialize Room DB
+        com.agroconnect.data.AgroRepository.init(applicationContext)
+
+        // Enqueue background sync every 12 hours
+        val syncWorkRequest = androidx.work.PeriodicWorkRequestBuilder<com.agroconnect.utils.SyncWorker>(
+            12, java.util.concurrent.TimeUnit.HOURS
+        ).setConstraints(
+            androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+        ).build()
+        androidx.work.WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+            "AgroConnectDataSync",
+            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            syncWorkRequest
+        )
+        
         enableEdgeToEdge()
         setContent {
             AgroConnectTheme {

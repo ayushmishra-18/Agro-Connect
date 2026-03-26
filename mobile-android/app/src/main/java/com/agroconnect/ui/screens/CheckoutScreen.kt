@@ -148,7 +148,7 @@ fun CheckoutScreen(navController: NavController) {
                             val orderItems = cartItems.map { c ->
                                 OrderItem(
                                     orderId = 0, // Set in repository
-                                    listingId = c.listingId,
+                                    listingId = c.cartItem.listingId,
                                     quantity = c.cartItem.quantity,
                                     pricePerUnit = c.listing.listedPrice
                                 )
