@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
 import { Wheat, User, Phone, MapPin, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
+import AuthCarousel from '@/components/AuthCarousel';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -80,98 +81,101 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card" style={{ maxWidth: 520, padding: '32px 32px' }}>
-        
-        <div className="auth-header" style={{ marginBottom: 24 }}>
-          <div className="auth-logo-box" style={{ width: 56, height: 56, marginBottom: 16 }}>
-            <Wheat size={28} />
+    <div className="auth-split-layout">
+      {/* Left Side: Form Section */}
+      <div className="auth-form-section">
+        <div className="auth-form-container" style={{ maxWidth: 520 }}>
+          
+          <div className="auth-header">
+            <div className="auth-logo">
+              <div className="auth-logo-icon"><Wheat size={24} /></div>
+              <span className="auth-logo-text">Agro-Connect</span>
+            </div>
+            <h1 className="auth-title">Create an Account</h1>
+            <p className="auth-subtitle">
+              Join the ecosystem and manage your farm operations.
+            </p>
           </div>
-          <h2 style={{ fontSize: '1.6rem' }}>Create an Account</h2>
-          <p>
-            Or <Link href="/login">sign in to your existing account</Link>
-          </p>
-        </div>
 
-        {error && (
-          <div className="auth-error">
-            <AlertCircle size={20} style={{ flexShrink: 0, marginTop: 2, color: '#EF5350' }} />
-            <span>{error}</span>
-          </div>
-        )}
+          {error && (
+            <div className="auth-error-alert">
+              <AlertCircle size={20} />
+              <span>{error}</span>
+            </div>
+          )}
 
-        <form onSubmit={handleRegister} className="auth-form">
+          <form onSubmit={handleRegister} className="auth-form">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div className="auth-input-group">
-              <label className="auth-label">First Name</label>
-              <div className="auth-input-wrapper">
-                <User className="auth-input-icon" size={18} />
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="input-label">First Name</label>
+              <div className="input-with-icon">
+                <User className="input-icon" size={18} />
                 <input
                   name="firstName" type="text" required
                   value={formData.firstName} onChange={handleInputChange}
-                  className="auth-input"
+                  className="modern-input"
                   placeholder="Ram"
                 />
               </div>
             </div>
             
-            <div className="auth-input-group">
-              <label className="auth-label">Last Name</label>
-              <div className="auth-input-wrapper">
-                <User className="auth-input-icon" size={18} />
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="input-label">Last Name</label>
+              <div className="input-with-icon">
+                <User className="input-icon" size={18} />
                 <input
                   name="lastName" type="text" required
                   value={formData.lastName} onChange={handleInputChange}
-                  className="auth-input"
+                  className="modern-input"
                   placeholder="Kumar"
                 />
               </div>
             </div>
           </div>
 
-          <div className="auth-input-group">
-            <label className="auth-label">Email Address</label>
-            <div className="auth-input-wrapper">
-              <Mail className="auth-input-icon" size={18} />
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="input-label">Email Address</label>
+            <div className="input-with-icon">
+              <Mail className="input-icon" size={18} />
               <input
                 name="email" type="email" required
                 value={formData.email} onChange={handleInputChange}
-                className="auth-input"
+                className="modern-input"
                 placeholder="ram@example.com"
               />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div className="auth-input-group">
-              <label className="auth-label">Phone Number</label>
-              <div className="auth-input-wrapper">
-                <Phone className="auth-input-icon" size={18} />
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="input-label">Phone Number</label>
+              <div className="input-with-icon">
+                <Phone className="input-icon" size={18} />
                 <input
                   name="phone" type="tel" required
                   value={formData.phone} onChange={handleInputChange}
-                  className="auth-input"
+                  className="modern-input"
                   placeholder="+91 987654321"
                 />
               </div>
             </div>
 
-            <div className="auth-input-group">
-              <label className="auth-label">Password</label>
-              <div className="auth-input-wrapper">
-                <Lock className="auth-input-icon" size={18} />
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="input-label">Password</label>
+              <div className="input-with-icon">
+                <Lock className="input-icon" size={18} />
                 <input
                   name="password" type="password" required minLength={6}
                   value={formData.password} onChange={handleInputChange}
-                  className="auth-input"
+                  className="modern-input"
                   placeholder="••••••••"
                 />
               </div>
             </div>
           </div>
 
-          <div className="auth-input-group" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
-            <label className="auth-label">I am registering as a:</label>
+          <div className="form-group" style={{ marginBottom: 0, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
+            <label className="input-label">I am registering as a:</label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <button
                 type="button"
@@ -204,8 +208,8 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="auth-input-group" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
-            <label className="auth-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="form-group" style={{ marginBottom: 0, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               Primary Location <span style={{ fontSize: '0.75rem', color: 'var(--color-primary-100)', fontWeight: 400 }}>(Required for localized updates)</span>
             </label>
             {location ? (
@@ -236,19 +240,30 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading || !location}
-              className="auth-submit-btn"
+              className="btn-solid-primary"
             >
               {loading ? <Loader2 size={20} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} /> : 'Create Account'}
             </button>
             {!location && (
-              <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginTop: 12 }}>
+              <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: 16 }}>
                 Please capture your location to continue.
               </p>
             )}
           </div>
         </form>
 
+        <div style={{ textAlign: 'center', marginTop: '32px' }}>
+          <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem' }}>Already have an account? </span>
+          <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none' }}>
+            Sign in
+          </Link>
+        </div>
+
+        </div>
       </div>
+
+      {/* Right Side: Image/Branding Section (Hidden on Mobile) */}
+      <AuthCarousel />
     </div>
   );
 }
