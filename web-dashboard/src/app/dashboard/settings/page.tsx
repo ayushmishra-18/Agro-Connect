@@ -138,13 +138,8 @@ export default function SettingsPage() {
   // Logout
   async function handleLogout() {
     setLoggingOut(true);
-    try {
-      await supabase.auth.signOut();
-      window.location.href = '/login';
-    } catch (err) {
-      console.error('Logout failed:', err);
-      setLoggingOut(false);
-    }
+    // Leverage the Next.js server route to completely flush secure HTTP-only cookies
+    window.location.href = '/auth/signout';
   }
 
   if (loading) {

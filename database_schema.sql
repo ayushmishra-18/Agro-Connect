@@ -162,9 +162,31 @@ CREATE POLICY "Public Read Access" ON public.p_prediction_outputs FOR SELECT USI
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.u_users (user_id, first_name, last_name, user_type)
-  VALUES (new.id, new.raw_user_meta_data->>'first_name', new.raw_user_meta_data->>'last_name', new.raw_user_meta_data->>'user_type');
-  
+  INSERT INTO public.u_users (user_id, first_name, last_name, phone_number, user_type)
+  VALUES (
+    new.id, 
+    new.raw_user_meta_data->>'first_name', 
+    new.raw_user_meta_data->>'last_name', 
+    new.raw_user_meta_data->>'phone_number',
+    new.raw_user_meta_data->>'user_type'
+  );
+
+  IF new.raw_user_meta_data->>'user_type' = 'FARMER' THEN
+      INSERT INTO public.u_farmer_profile (user_id, primary_location_lat, primary_location_lon)
+      VALUES (
+          new.id,
+          CAST(new.raw_user_meta_data->>'lat' AS DOUBLE PRECISION),
+          CAST(new.raw_user_meta_data->>'lon' AS DOUBLE PRECISION)
+      );
+  ELSIF new.raw_user_meta_data->>'user_type' = 'BUYER' THEN
+      INSERT INTO public.u_buyer_profile (user_id, primary_location_lat, primary_location_lon)
+      VALUES (
+          new.id,
+          CAST(new.raw_user_meta_data->>'lat' AS DOUBLE PRECISION),
+          CAST(new.raw_user_meta_data->>'lon' AS DOUBLE PRECISION)
+      );
+  END IF;
+
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;

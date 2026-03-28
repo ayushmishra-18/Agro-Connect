@@ -315,11 +315,15 @@ fun SettingsScreen(navController: NavController) {
                 coroutineScope.launch {
                     try {
                         SupabaseClient.client.auth.signOut()
+                    } catch (e: Exception) {
+                        // Ignore network disconnects; force log out frontend anyway
+                    }
+                    try {
                         navController.navigate(Screen.Login.route) {
-                            popUpTo(0) { inclusive = true }
+                            popUpTo(navController.graph.id) { inclusive = true }
                         }
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Logout failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Logout UI failed: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
             },
