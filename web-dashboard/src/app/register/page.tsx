@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import Link from 'next/link';
 import { Wheat, User, Phone, MapPin, Loader2, AlertCircle, Mail, Lock } from 'lucide-react';
 import AuthCarousel from '@/components/AuthCarousel';
+import { searchLocation, reverseGeocode } from '@/app/location-actions';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -37,11 +38,10 @@ export default function RegisterPage() {
 
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.locationName)}&limit=5`);
-        const data = await res.json();
+        const data = await searchLocation(formData.locationName);
         setLocationSuggestions(data);
       } catch (err) {
-        console.error("Autofill error:", err);
+        console.warn("Autofill error:", err);
       }
     }, 500);
 
@@ -63,12 +63,11 @@ export default function RegisterPage() {
           setLocation({ lat, lon });
 
           try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-            const data = await res.json();
+            const data = await reverseGeocode(lat, lon);
             const locName = data?.address?.city || data?.address?.state_district || data?.address?.state || data?.display_name || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
             setFormData(prev => ({ ...prev, locationName: locName }));
           } catch (e) {
-            console.error("Geocoding failed", e);
+            console.warn("Geocoding failed", e);
             setFormData(prev => ({ ...prev, locationName: `${lat.toFixed(4)}, ${lon.toFixed(4)}` }));
           }
 
