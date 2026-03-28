@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Settings, Globe, User, Sprout, MapPin, Camera, LogOut, Mail, Phone, Shield, Save, Check, Loader2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 
 interface UserProfile {
   firstName: string;
@@ -16,6 +16,7 @@ interface UserProfile {
 }
 
 export default function SettingsPage() {
+  const supabase = createClient();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [language, setLanguage] = useState('en');
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
     firstName: '',
     lastName: '',
@@ -127,6 +129,7 @@ export default function SettingsPage() {
         }
       });
       setSaved(true);
+      setIsEditing(false);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       console.error('Save failed:', err);
@@ -214,74 +217,95 @@ export default function SettingsPage() {
 
       {/* Personal Information */}
       <div className="card settings-card">
-        <div className="card-header">
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3><User size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} />Personal Information</h3>
+          {!isEditing && (
+            <button className="btn btn-sm btn-outline" onClick={() => setIsEditing(true)}>
+              Edit Profile
+            </button>
+          )}
         </div>
         <div className="card-body">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className="form-group">
-              <label className="form-label">First Name</label>
-              <input
-                className="form-input"
-                value={profile.firstName}
-                onChange={e => setProfile(p => ({ ...p, firstName: e.target.value }))}
-                placeholder="Enter first name"
-              />
+              <label className="form-label" style={{ color: 'var(--text-secondary)' }}>First Name</label>
+              {isEditing ? (
+                <input
+                  className="form-input"
+                  value={profile.firstName}
+                  onChange={e => setProfile(p => ({ ...p, firstName: e.target.value }))}
+                  placeholder="Enter first name"
+                />
+              ) : (
+                <div style={{ padding: '8px 0', fontWeight: 500 }}>{profile.firstName || 'Not provided'}</div>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">Last Name</label>
-              <input
-                className="form-input"
-                value={profile.lastName}
-                onChange={e => setProfile(p => ({ ...p, lastName: e.target.value }))}
-                placeholder="Enter last name"
-              />
+              <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Last Name</label>
+              {isEditing ? (
+                <input
+                  className="form-input"
+                  value={profile.lastName}
+                  onChange={e => setProfile(p => ({ ...p, lastName: e.target.value }))}
+                  placeholder="Enter last name"
+                />
+              ) : (
+                <div style={{ padding: '8px 0', fontWeight: 500 }}>{profile.lastName || 'Not provided'}</div>
+              )}
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div className="form-group">
-              <label className="form-label">
+              <label className="form-label" style={{ color: 'var(--text-secondary)' }}>
                 <Phone size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                 Phone Number
               </label>
-              <input
-                className="form-input"
-                value={profile.phone}
-                onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))}
-                placeholder="+91 XXXXX XXXXX"
-              />
+              {isEditing ? (
+                <input
+                  className="form-input"
+                  value={profile.phone}
+                  onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))}
+                  placeholder="+91 XXXXX XXXXX"
+                />
+              ) : (
+                <div style={{ padding: '8px 0', fontWeight: 500 }}>{profile.phone || 'Not provided'}</div>
+              )}
             </div>
             <div className="form-group">
-              <label className="form-label">
+              <label className="form-label" style={{ color: 'var(--text-secondary)' }}>
                 <Mail size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                 Email Address
               </label>
-              <input
-                className="form-input"
-                value={profile.email}
-                disabled
-                style={{ opacity: 0.6, cursor: 'not-allowed' }}
-              />
+              <div style={{ padding: isEditing ? '10px' : '8px 0', fontWeight: 500, background: isEditing ? 'rgba(0,0,0,0.02)' : 'transparent', borderRadius: 8, color: profile.email ? 'inherit' : 'var(--text-secondary)' }}>
+                {profile.email || 'No email registered'}
+                {isEditing && <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-secondary)', marginTop: 4 }}>Email cannot be changed directly</span>}
+              </div>
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">User Type</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <button
-                type="button"
-                className={`settings-type-btn ${profile.userType === 'FARMER' ? 'active farmer' : ''}`}
-                onClick={() => setProfile(p => ({ ...p, userType: 'FARMER' }))}
-              >
-                <Sprout size={18} /> Farmer
-              </button>
-              <button
-                type="button"
-                className={`settings-type-btn ${profile.userType === 'BUYER' ? 'active buyer' : ''}`}
-                onClick={() => setProfile(p => ({ ...p, userType: 'BUYER' }))}
-              >
-                <User size={18} /> Buyer
-              </button>
-            </div>
+            <label className="form-label" style={{ color: 'var(--text-secondary)' }}>Account Type</label>
+            {isEditing ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <button
+                  type="button"
+                  className={`settings-type-btn ${profile.userType === 'FARMER' ? 'active farmer' : ''}`}
+                  onClick={() => setProfile(p => ({ ...p, userType: 'FARMER' }))}
+                >
+                  <Sprout size={18} /> Farmer
+                </button>
+                <button
+                  type="button"
+                  className={`settings-type-btn ${profile.userType === 'BUYER' ? 'active buyer' : ''}`}
+                  onClick={() => setProfile(p => ({ ...p, userType: 'BUYER' }))}
+                >
+                  <User size={18} /> Buyer
+                </button>
+              </div>
+            ) : (
+              <div style={{ padding: '8px 0', fontWeight: 600 }}>
+                {profile.userType === 'FARMER' ? '🌾 Farmer Account' : '🛒 Buyer Account'}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -293,16 +317,20 @@ export default function SettingsPage() {
         </div>
         <div className="card-body">
           <div className="form-group">
-            <label className="form-label">
+            <label className="form-label" style={{ color: 'var(--text-secondary)' }}>
               <MapPin size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
               Primary Location
             </label>
-            <input
-              className="form-input"
-              value={profile.locationName}
-              onChange={e => setProfile(p => ({ ...p, locationName: e.target.value }))}
-              placeholder="Village / District / State"
-            />
+            {isEditing ? (
+              <input
+                className="form-input"
+                value={profile.locationName}
+                onChange={e => setProfile(p => ({ ...p, locationName: e.target.value }))}
+                placeholder="Village / District / State"
+              />
+            ) : (
+              <div style={{ padding: '8px 0', fontWeight: 500 }}>{profile.locationName || 'Location not set'}</div>
+            )}
           </div>
           <div className="form-group">
             <label className="form-label">Primary Crops (select up to 3)</label>
@@ -375,10 +403,22 @@ export default function SettingsPage() {
             {loggingOut ? <Loader2 size={18} className="spin-animation" /> : <LogOut size={18} />}
             {loggingOut ? 'Logging out...' : 'Log Out'}
           </button>
-          <button className="btn btn-primary btn-lg" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 size={18} className="spin-animation" /> : <Save size={18} />}
-            {saving ? 'Saving...' : 'Save Settings'}
-          </button>
+          
+          {isEditing && (
+            <>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setIsEditing(false)} 
+                style={{ padding: '12px 20px', fontWeight: 600, borderRadius: 12 }}
+              >
+                Cancel
+              </button>
+              <button className="btn btn-primary btn-lg" onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 size={18} className="spin-animation" /> : <Save size={18} />}
+                {saving ? 'Saving...' : 'Save Settings'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -315,7 +315,7 @@ img {
 .sidebar-collapse-btn {
   position: absolute;
   bottom: 20px;
-  right: -14px;
+  right: 14px;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -337,7 +337,7 @@ img {
 }
 
 .sidebar.collapsed .sidebar-collapse-btn {
-  right: -14px;
+  right: 22px;
 }
 
 /* Main Content */
@@ -1446,7 +1446,7 @@ img {
   align-items: center;
   gap: var(--space-xl);
   padding: var(--space-xl);
-  background: linear-gradient(135deg, var(--color-primary-50) 0%, rgba(255,255,255,0) 60%);
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, rgba(255, 255, 255, 0) 60%);
 }
 
 .settings-avatar-wrapper {
@@ -1664,6 +1664,11 @@ img {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
