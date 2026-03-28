@@ -47,6 +47,10 @@ export default function MarketplacePage() {
   const [showForm, setShowForm] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+  // Live Market Price State
+  const [marketPrice, setMarketPrice] = useState<number | null>(null);
+  const [loadingPrice, setLoadingPrice] = useState(false);
+
   // Form state
   const [formType, setFormType] = useState<'CROP' | 'EQUIPMENT'>('CROP');
   const [formCropId, setFormCropId] = useState(1);
@@ -87,6 +91,36 @@ export default function MarketplacePage() {
   useEffect(() => {
     loadData();
   }, [tab, currentUserId]);
+
+  // Fetch Live Market Prices dynamically when crop is changed
+  useEffect(() => {
+    if (!formCropId || formType !== 'CROP') {
+      setMarketPrice(null);
+      return;
+    }
+
+    let isMounted = true;
+    (async () => {
+      setLoadingPrice(true);
+      const { data, error } = await supabase
+        .from('p_daily_market_prices')
+        .select('price_per_quintal')
+        .eq('crop_id', Number(formCropId))
+        .order('ingested_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (isMounted) {
+        if (data && data.price_per_quintal) {
+          setMarketPrice(data.price_per_quintal);
+        } else {
+          setMarketPrice(null);
+        }
+        setLoadingPrice(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [formCropId, formType]);
 
   const cropMap = Object.fromEntries(crops.map(c => [c.crop_id, c.crop_name_en]));
 
@@ -398,20 +432,34 @@ export default function MarketplacePage() {
               {/* Price */}
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, display: 'block' }}>Price (₹ per unit)</label>
-                <input
-                  type="number"
-                  value={formPrice}
-                  onChange={e => setFormPrice(e.target.value)}
-                  placeholder="Enter price per unit"
-                  required
-                  min="1"
-                  step="0.01"
-                  style={{
-                    width: '100%', padding: 10, borderRadius: 8,
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: 14,
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="number"
+                    value={formPrice}
+                    onChange={e => setFormPrice(e.target.value)}
+                    placeholder="Enter price per unit"
+                    required
+                    min="1"
+                    step="0.01"
+                    style={{
+                      width: '100%', padding: '10px 10px 10px 25px', borderRadius: 8,
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-card)', color: 'var(--text-primary)', fontSize: 14,
+                    }}
+                  />
+                  <span style={{ position: 'absolute', left: 10, top: 10, color: 'var(--text-secondary)' }}>₹</span>
+                </div>
+                {formType === 'CROP' && formCropId && (
+                  <div style={{ marginTop: '8px', fontSize: '13px' }}>
+                    {loadingPrice ? (
+                        <span style={{ color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>Loading Mandi rates...</span>
+                    ) : marketPrice !== null ? (
+                        <span style={{ color: '#0ea5e9', fontWeight: 500 }}>📈 Live Mandi Avg: <strong>₹{marketPrice}/Quintal</strong></span>
+                    ) : (
+                        <span style={{ color: 'var(--text-secondary)' }}>Market price unavailable</span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button
