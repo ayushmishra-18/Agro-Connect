@@ -179,16 +179,6 @@ export default function DashboardPage() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>{t('dashboardTitle')}</h2>
-        <button 
-          className="btn btn-sm btn-outline" 
-          onClick={() => {
-            const next = i18n.language === 'en' ? 'hi' : 'en';
-            i18n.changeLanguage(next);
-            localStorage.setItem('agro_lang', next);
-          }}
-        >
-          {t('changeLang')}
-        </button>
       </div>
 
       {/* Stats Row */}
@@ -198,10 +188,10 @@ export default function DashboardPage() {
             <Sprout size={24} />
           </div>
           <div className="stat-info">
-            <h4>Crops Tracked</h4>
+            <h4>{t('cropsTracked')}</h4>
             <div className="stat-value">{cropPrices.length}</div>
             <div className="stat-change up">
-              <ArrowUpRight size={12} /> Active predictions
+              <ArrowUpRight size={12} /> {t('activePredictions')}
             </div>
           </div>
         </div>
@@ -211,7 +201,7 @@ export default function DashboardPage() {
             <IndianRupee size={24} />
           </div>
           <div className="stat-info">
-            <h4>Wheat (Avg)</h4>
+            <h4>{t('wheatAvg')}</h4>
             <div className="stat-value">
               ₹{cropPrices.find(c => c.crop_id === 1)?.latest_price?.toLocaleString('en-IN') || '—'}
             </div>
@@ -233,10 +223,10 @@ export default function DashboardPage() {
             <MapPin size={24} />
           </div>
           <div className="stat-info">
-            <h4>Markets Listed</h4>
+            <h4>{t('marketsListed')}</h4>
             <div className="stat-value">{totalMandis}</div>
             <div className="stat-change up">
-              <ArrowUpRight size={12} /> Across India
+              <ArrowUpRight size={12} /> {t('acrossIndia')}
             </div>
           </div>
         </div>
@@ -246,10 +236,10 @@ export default function DashboardPage() {
             <AlertTriangle size={24} />
           </div>
           <div className="stat-info">
-            <h4>Active Advisories</h4>
+            <h4>{t('activeAdvisories')}</h4>
             <div className="stat-value">{advisories.length}</div>
             <div className="stat-change">
-              <Minus size={12} /> Updated today
+              <Minus size={12} /> {t('updatedToday')}
             </div>
           </div>
         </div>

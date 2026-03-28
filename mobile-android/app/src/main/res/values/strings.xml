@@ -46,4 +46,15 @@
     <string name="high">High</string>
     <string name="medium">Medium</string>
     <string name="low">Low</string>
+    <!-- Extracted Strings for Weather & Checkout -->
+    <string name="your_location">Your Location</string>
+    <string name="order_placed_success">Order Placed Successfully!</string>
+    <string name="order_placed_desc">You can coordinate payment directly with the seller.</string>
+    <string name="view_my_orders">View My Orders</string>
+    <string name="nothing_to_checkout">Nothing to checkout</string>
+    <string name="order_summary">Order Summary</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="pay_offline">Pay directly to seller (Offline)</string>
+    <string name="total_to_pay">Total to Pay</string>
+    <string name="place_order">Place Order</string>
 </resources>
