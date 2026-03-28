@@ -26,6 +26,8 @@ import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.launch
 import com.agroconnect.utils.LocationHelper
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.agroconnect.R
 import kotlin.math.roundToInt
 
 @Composable
@@ -89,7 +91,7 @@ fun WeatherScreen() {
                     Column(Modifier.padding(20.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(weather?.city ?: "Your Location", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                                Text(weather?.city ?: stringResource(id = R.string.your_location), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                                 Text(day.conditionDesc.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Text(
@@ -118,7 +120,7 @@ fun WeatherScreen() {
 
         // 5-Day Forecast
         item {
-            Text("📅 5-Day Forecast", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+            Text("📅 " + stringResource(id = R.string.five_day_forecast), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
         }
 
         weather?.daily?.let { days ->
@@ -133,7 +135,7 @@ fun WeatherScreen() {
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                if (index == 0) "Today" else day.date,
+                                if (index == 0) stringResource(id = R.string.today) else day.date,
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold,
                             )
@@ -163,7 +165,7 @@ fun WeatherScreen() {
         // Farming Advisories
         weather?.farmingAdvisories?.takeIf { it.isNotEmpty() }?.let { advs ->
             item {
-                Text("🌾 Farming Advice", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                Text("🌾 " + stringResource(id = R.string.farming_advice), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
             }
 
             items(advs) { adv ->

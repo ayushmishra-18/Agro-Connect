@@ -16,6 +16,7 @@ import {
   LogOut,
   Globe,
 } from 'lucide-react';
+import i18n from '@/lib/i18n';
 
 /* ─── Language Context ─── */
 type Language = 'en' | 'hi' | 'mr';
@@ -166,17 +167,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   <button
                     key={l}
                     className={`lang-btn ${lang === l ? 'active' : ''}`}
-                    onClick={() => setLang(l)}
+                    onClick={() => {
+                      setLang(l);
+                      if (i18n.changeLanguage) i18n.changeLanguage(l);
+                      localStorage.setItem('agro_lang', l);
+                    }}
                     aria-label={`Switch to ${l === 'en' ? 'English' : l === 'hi' ? 'Hindi' : 'Marathi'}`}
                   >
                     {langLabels[l]}
                   </button>
                 ))}
               </div>
-              <button className="btn btn-sm btn-outline" style={{ gap: 4 }}>
-                <Globe size={14} />
-                <span>{lang === 'hi' ? 'भाषा' : lang === 'mr' ? 'भाषा' : 'Lang'}</span>
-              </button>
             </div>
           </header>
 

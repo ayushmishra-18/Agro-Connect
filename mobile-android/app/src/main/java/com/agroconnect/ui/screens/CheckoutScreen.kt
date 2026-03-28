@@ -20,6 +20,8 @@ import com.agroconnect.models.CartItemWithDetails
 import com.agroconnect.models.Order
 import com.agroconnect.models.OrderItem
 import com.agroconnect.ui.navigation.Screen
+import com.agroconnect.R
+import androidx.compose.ui.res.stringResource
 import io.github.jan.supabase.gotrue.auth
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -54,12 +56,12 @@ fun CheckoutScreen(navController: NavController) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Filled.CheckCircle, null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(16.dp))
-                Text("Order Placed Successfully!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(id = R.string.order_placed_success), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(8.dp))
-                Text("You can coordinate payment directly with the seller.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(id = R.string.order_placed_desc), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(24.dp))
                 Button(onClick = { navController.navigate(Screen.Orders.route) { popUpTo(Screen.Dashboard.route) } }) {
-                    Text("View My Orders")
+                    Text(stringResource(id = R.string.view_my_orders))
                 }
             }
         }
@@ -76,7 +78,7 @@ fun CheckoutScreen(navController: NavController) {
 
         if (cartItems.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Nothing to checkout")
+                Text(stringResource(id = R.string.nothing_to_checkout))
             }
             return
         }
@@ -86,7 +88,7 @@ fun CheckoutScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Text("Order Summary", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(stringResource(id = R.string.order_summary), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             }
 
             items(cartItems) { item ->
@@ -110,9 +112,9 @@ fun CheckoutScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Payment Method", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(id = R.string.payment_method), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         Spacer(Modifier.height(4.dp))
-                        Text("Pay directly to seller (Offline)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(id = R.string.pay_offline), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
             }
@@ -128,7 +130,7 @@ fun CheckoutScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Total to Pay", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(id = R.string.total_to_pay), style = MaterialTheme.typography.titleMedium)
                     Text("₹${inrFormat.format(cartTotal)}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
                 Spacer(Modifier.height(16.dp))
@@ -171,7 +173,7 @@ fun CheckoutScreen(navController: NavController) {
                     if (placingOrder) {
                         CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
                     } else {
-                        Text("Place Order", fontSize = MaterialTheme.typography.titleMedium.fontSize)
+                        Text(stringResource(id = R.string.place_order), fontSize = MaterialTheme.typography.titleMedium.fontSize)
                     }
                 }
             }
