@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import {
   TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight,
   AlertCircle, CheckCircle, BarChart3, CalendarDays,
@@ -36,6 +36,7 @@ interface PricePoint {
 }
 
 export default function PredictionsPage() {
+  const supabase = createClient();
   const [crops, setCrops] = useState<Crop[]>([]);
   const [mandis, setMandis] = useState<Mandi[]>([]);
   const [selectedCrop, setSelectedCrop] = useState<number>(1);
@@ -67,8 +68,15 @@ export default function PredictionsPage() {
   async function loadPredictions() {
     setLoading(true);
     try {
-      // Call the Edge Function for fresh prediction
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      
+      // Fire-and-forget background sync to ensure fresh data
+      fetch(`${supabaseUrl}/functions/v1/sync-mandi-prices`, { method: 'POST' }).catch(() => {});
+
+      let resultMeta = null;
+      let cachedPredictions = [];
+
+      // Call the Edge Function for fresh prediction
       const response = await fetch(`${supabaseUrl}/functions/v1/predict-prices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,6 +86,7 @@ export default function PredictionsPage() {
       if (response.ok) {
         const result = await response.json();
         setPredictions(result.predictions || []);
+        resultMeta = result;
         setPredictionMeta(result);
       } else {
         // Fallback: load from cached predictions
@@ -88,8 +97,8 @@ export default function PredictionsPage() {
           .eq('mandi_id', selectedMandi)
           .order('forecast_day_index')
           .limit(7);
-        setPredictions(data || []);
-        setPredictionMeta(null);
+        cachedPredictions = data || [];
+        setPredictions(cachedPredictions);
       }
 
       // Load historical prices (last 30 days)
@@ -101,11 +110,71 @@ export default function PredictionsPage() {
         .order('date', { ascending: true })
         .limit(30);
 
-      if (histData) {
-        setHistoryData(histData.map(d => ({
+      if (histData && histData.length > 0) {
+        // Reverse to chronological order for charts
+        const chronologicalData = [...histData].reverse();
+        
+        setHistoryData(chronologicalData.map(d => ({
           date: new Date(d.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
           price: d.price_per_quintal,
         })));
+
+        // If Edge Function failed, compute stats locally from historical data
+        if (!resultMeta && histData.length >= 7) {
+          const prices = histData.map(d => d.price_per_quintal).reverse(); // chronological
+          
+          const ma7 = prices.slice(-7).reduce((a, b) => a + b, 0) / 7;
+          const ma14 = prices.slice(-14).reduce((a, b) => a + b, 0) / Math.min(14, prices.length);
+          
+          let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+          const n = Math.min(14, prices.length);
+          const recentPrices = prices.slice(-n);
+          for (let i = 0; i < n; i++) {
+            sumX += i; sumY += recentPrices[i]; sumXY += i * recentPrices[i]; sumXX += i * i;
+          }
+          const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+          const trendDirection = slope > 1 ? 'UP' : slope < -1 ? 'DOWN' : 'STABLE';
+          
+          const mean = sumY / n;
+          const stdDev = Math.sqrt(recentPrices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / n);
+          const cv = stdDev / mean;
+          const confidenceScore = Math.min(95, Math.max(60, Math.round((1 - (cv * 10)) * 100)));
+
+          // Find peak from cached predictions
+          let bestDay = 1;
+          let bestPrice = 0;
+          let bestDate = '';
+          
+          if (cachedPredictions && cachedPredictions.length > 0) {
+             cachedPredictions.forEach((p: any) => {
+               if (p.predicted_price > bestPrice) {
+                 bestPrice = p.predicted_price;
+                 bestDay = p.forecast_day_index;
+                 bestDate = p.forecast_date;
+               }
+             });
+          }
+
+          setPredictionMeta({
+            confidence_score: confidenceScore,
+            trend_direction: trendDirection,
+            sell_window: bestPrice > 0 ? {
+              recommended_day: bestDay,
+              recommended_date: bestDate,
+              predicted_peak_price: bestPrice,
+              reason: trendDirection === 'UP' ? 'Prices are trending upward. Consider waiting for the peak.' : 'Prices are stable or declining. Evaluate your holding capacity.'
+            } : null,
+            historical_summary: {
+              last_price: prices[prices.length - 1],
+              ma_7day: Math.round(ma7 * 100) / 100,
+              ma_14day: Math.round(ma14 * 100) / 100,
+              daily_trend: Math.round(slope * 100) / 100,
+              volatility: Math.round(stdDev * 100) / 100,
+            }
+          });
+        }
+      } else {
+        setHistoryData([]);
       }
     } catch (err) {
       console.error('Prediction load error:', err);
