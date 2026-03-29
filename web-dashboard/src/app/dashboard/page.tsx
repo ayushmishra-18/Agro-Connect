@@ -14,6 +14,8 @@ import {
 import FarmSummaryStrip from '@/components/dashboard/FarmSummaryStrip';
 import ImmediateActionBar from '@/components/dashboard/ImmediateActionBar';
 import SellHoldIndicator from '@/components/dashboard/SellHoldIndicator';
+import CropLifecycleTracker from '@/components/dashboard/CropLifecycleTracker';
+import ActiveBidsPanel from '@/components/dashboard/ActiveBidsPanel';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -77,31 +79,9 @@ export default function DashboardPage() {
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>🌱 Farm & Inventory</h2>
         </div>
         <div className="grid-2">
-          <div className="card" style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            textAlign: 'center', padding: 'var(--space-2xl) var(--space-xl)',
-            border: '1.5px dashed var(--color-border)', background: 'var(--color-bg-secondary)',
-          }}>
-            <Sprout size={32} color="var(--color-primary)" style={{ opacity: 0.5, marginBottom: 12 }} />
-            <h4 style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)', marginBottom: 6 }}>Crop Lifecycle Tracker</h4>
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Visual progress bars for your active crops (Sowing → Harvest).
-            </p>
-            <span className="badge badge-success" style={{ marginTop: 12 }}>Phase 1.4</span>
-          </div>
+          <CropLifecycleTracker />
 
-          <div className="card" style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            textAlign: 'center', padding: 'var(--space-2xl) var(--space-xl)',
-            border: '1.5px dashed var(--color-border)', background: 'var(--color-bg-secondary)',
-          }}>
-            <LayoutDashboard size={32} color="var(--color-info)" style={{ opacity: 0.5, marginBottom: 12 }} />
-            <h4 style={{ fontWeight: 600, fontSize: '1rem', color: 'var(--color-text-primary)', marginBottom: 6 }}>Active Marketplace Bids</h4>
-            <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>
-              Review, Accept, or Counter offers on your listings.
-            </p>
-            <span className="badge badge-info" style={{ marginTop: 12 }}>Phase 1.5</span>
-          </div>
+          <ActiveBidsPanel />
         </div>
       </div>
     </div>
