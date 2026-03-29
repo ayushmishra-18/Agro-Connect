@@ -110,17 +110,32 @@ export async function GET(request: Request) {
       }
     }
 
+    // Build hourly forecast arrays (next 24 hours)
+    const hourlyTemp = mData.hourly.temperature_2m.slice(0, 24);
+    const hourlyHumidity = mData.hourly.relative_humidity_2m.slice(0, 24);
+    const hourlyPrecip = mData.hourly.precipitation.slice(0, 24);
+    const hourlyTimes = mData.hourly.time ? mData.hourly.time.slice(0, 24) : [];
+
     // Default payload structure
     const payload = {
       current: {
         temp: currentTemp,
         humidity: currentHumidity,
         wind: currentWind,
-        rain_chance: next24hPrecipSum > 0 ? (next24hPrecipSum > 5 ? 90 : 40) : 0, // Mocked probability from volume
-        irrigation_suggestion: next24hPrecipSum > 2 ? 'Skip — rain expected' : (soilMoisture < 30 ? 'Irrigate today' : 'Optimal moisture')
+        rain_chance: next24hPrecipSum > 0 ? (next24hPrecipSum > 5 ? 90 : 40) : 0,
+        irrigation_suggestion: next24hPrecipSum > 2 ? 'Skip — rain expected' : (soilMoisture < 30 ? 'Irrigate today' : 'Optimal moisture'),
+        soil_moisture: Math.round(soilMoisture),
+        temp_min: Math.round(tempMin),
+        precip_24h: Math.round(next24hPrecipSum * 10) / 10,
       },
       location: lat === 18.5204 ? 'Pune (Default)' : 'Your Farm',
-      alerts: activeAlerts
+      alerts: activeAlerts,
+      hourly: {
+        time: hourlyTimes,
+        temperature: hourlyTemp,
+        humidity: hourlyHumidity,
+        precipitation: hourlyPrecip,
+      }
     };
 
     // If completely clear weather, append a default ALL clear message

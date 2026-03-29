@@ -125,8 +125,9 @@ export default function VoiceAssistant() {
     }
   };
 
+  const [isHovered, setIsHovered] = useState(false);
+
   if (!isSupported) {
-    // Optionally render a muted fallback or hide altogether if totally unsupported
     return null;
   }
 
@@ -137,19 +138,20 @@ export default function VoiceAssistant() {
       right: 'var(--space-xl)',
       zIndex: 9999,
       display: 'flex',
-      alignItems: 'center',
-      gap: 'var(--space-md)'
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: 'var(--space-sm)'
     }}>
-      {/* Visual Feedback Bubble */}
+      {/* Visual Feedback Bubble (shows transcript/response) */}
       {transcriptText && (
-        <div className="card animate-in slide-in-from-right" style={{
+        <div className="card" style={{
           padding: 'var(--space-sm) var(--space-md)',
-          borderRadius: 20,
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(8px)',
+          borderRadius: 16,
+          background: 'rgba(255, 255, 255, 0.97)',
+          backdropFilter: 'blur(12px)',
           border: '1px solid var(--color-border)',
-          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-          maxWidth: 240,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          maxWidth: 260,
           fontSize: '0.85rem',
           fontWeight: 600,
           color: 'var(--color-text-primary)'
@@ -158,41 +160,69 @@ export default function VoiceAssistant() {
         </div>
       )}
 
-      {/* Floating Action Button */}
-      <button 
-        onClick={toggleListening}
-        disabled={isProcessing}
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: '50%',
-          border: 'none',
-          padding: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: isListening ? 'var(--color-danger)' : 'var(--color-success)',
-          color: 'var(--color-bg-primary)',
-          cursor: isProcessing ? 'not-allowed' : 'pointer',
-          boxShadow: isListening 
-            ? '0 0 0 6px rgba(220, 53, 69, 0.3)' // Danger glow pulse
-            : '0 4px 12px rgba(0, 0, 0, 0.2)', // Standard floating shadow
-          transition: 'all 0.3s ease',
-          animation: isListening ? 'pulse 1.5s infinite ease-in-out' : 'none',
-        }}
-        aria-label="Voice Assistant"
-      >
-        {isProcessing ? (
-          <Loader2 size={28} className="spin" />
-        ) : isListening ? (
-          <MicOff size={28} />
-        ) : (
-          <Mic size={28} />
-        )}
-      </button>
+      {/* Button row with hover label */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
+        {/* Hover tooltip label */}
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.97)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+          padding: '8px 14px',
+          borderRadius: 12,
+          fontSize: '0.82rem',
+          fontWeight: 700,
+          color: 'var(--color-text-primary)',
+          whiteSpace: 'nowrap',
+          opacity: (isHovered || isListening) ? 1 : 0,
+          transform: (isHovered || isListening) ? 'translateX(0)' : 'translateX(8px)',
+          transition: 'all 0.25s ease',
+          pointerEvents: 'none'
+        }}>
+          {isListening ? '🎙️ Listening...' : '🗣️ Talk to Farm Assistant'}
+        </div>
 
-      {/* Embedded CSS specific to this component pulse */}
+        {/* Floating Action Button */}
+        <button
+          onClick={toggleListening}
+          disabled={isProcessing}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            border: 'none',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: isListening
+              ? 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)'
+              : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+            color: '#fff',
+            cursor: isProcessing ? 'not-allowed' : 'pointer',
+            boxShadow: isListening
+              ? '0 0 0 6px rgba(220, 53, 69, 0.3)'
+              : '0 6px 20px rgba(5, 150, 105, 0.4)',
+            transition: 'all 0.3s ease',
+            animation: isListening ? 'pulse 1.5s infinite ease-in-out' : 'none',
+          }}
+          aria-label="Voice Assistant"
+        >
+          {isProcessing ? (
+            <Loader2 size={28} className="spin" />
+          ) : isListening ? (
+            <MicOff size={28} />
+          ) : (
+            <Mic size={28} />
+          )}
+        </button>
+      </div>
+
+      {/* Embedded CSS */}
       <style dangerouslySetInnerHTML={{__html: "@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } } .spin { animation: rotation 2s infinite linear; } @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(359deg); } }"}} />
     </div>
   );
 }
+

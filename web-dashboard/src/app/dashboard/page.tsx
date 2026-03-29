@@ -14,7 +14,6 @@ import {
 import FarmSummaryStrip from '@/components/dashboard/FarmSummaryStrip';
 import ImmediateActionBar from '@/components/dashboard/ImmediateActionBar';
 import SellHoldIndicator from '@/components/dashboard/SellHoldIndicator';
-import WeatherCard from '@/components/dashboard/WeatherCard';
 import CropLifecycleTracker from '@/components/dashboard/CropLifecycleTracker';
 import ActiveBidsPanel from '@/components/dashboard/ActiveBidsPanel';
 import QuickActionsRow from '@/components/dashboard/QuickActionsRow';
@@ -72,11 +71,8 @@ export default function DashboardPage() {
       {/* Zone 1 — Immediate Actions */}
       <ImmediateActionBar />
 
-      {/* Zone 2 — AI Recommendations & Local Weather */}
-      <div className="grid-2" style={{ marginBottom: 'var(--space-2xl)' }}>
-        <WeatherCard />
-        <SellHoldIndicator />
-      </div>
+      {/* Zone 2 — AI Recommendations */}
+      <SellHoldIndicator />
 
       {/* Zone 3 — Farm & Inventory (Placeholder) */}
       <div className="animate-in stagger-3" style={{ marginBottom: 'var(--space-xl)' }}>
