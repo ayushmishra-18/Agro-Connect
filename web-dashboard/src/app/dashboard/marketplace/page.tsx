@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import {
   Package,
   Plus,
@@ -41,6 +41,7 @@ const EMOJI_MAP: Record<number, string> = {
 
 export default function MarketplacePage() {
   const { t } = useTranslation();
+  const supabase = createClient();
   const [listings, setListings] = useState<Listing[]>([]);
   const [crops, setCrops] = useState<Crop[]>([]);
   const [loading, setLoading] = useState(true);

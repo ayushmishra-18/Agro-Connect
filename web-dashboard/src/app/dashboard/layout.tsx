@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import i18n from '@/lib/i18n';
 import VoiceAssistant from '@/components/dashboard/VoiceAssistant';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 
 /* ─── Language Context ─── */
 type Language = 'en' | 'hi' | 'mr';
@@ -58,6 +58,7 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [lang, setLang] = useState<Language>('en');
