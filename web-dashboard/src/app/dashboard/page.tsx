@@ -16,6 +16,7 @@ import ImmediateActionBar from '@/components/dashboard/ImmediateActionBar';
 import SellHoldIndicator from '@/components/dashboard/SellHoldIndicator';
 import CropLifecycleTracker from '@/components/dashboard/CropLifecycleTracker';
 import ActiveBidsPanel from '@/components/dashboard/ActiveBidsPanel';
+import QuickActionsRow from '@/components/dashboard/QuickActionsRow';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -80,10 +81,12 @@ export default function DashboardPage() {
         </div>
         <div className="grid-2">
           <CropLifecycleTracker />
-
           <ActiveBidsPanel />
         </div>
       </div>
+      
+      {/* Phase 1.6: Final Bottom Navigation Tile Row */}
+      <QuickActionsRow />
     </div>
   );
 }
