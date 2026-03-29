@@ -167,23 +167,23 @@ BEGIN
     new.id, 
     new.raw_user_meta_data->>'first_name', 
     new.raw_user_meta_data->>'last_name', 
-    new.raw_user_meta_data->>'phone_number',
-    new.raw_user_meta_data->>'user_type'
+    NULLIF(new.raw_user_meta_data->>'phone_number', ''),
+    NULLIF(new.raw_user_meta_data->>'user_type', '')
   );
 
   IF new.raw_user_meta_data->>'user_type' = 'FARMER' THEN
       INSERT INTO public.u_farmer_profile (user_id, primary_location_lat, primary_location_lon)
       VALUES (
           new.id,
-          CAST(new.raw_user_meta_data->>'lat' AS DOUBLE PRECISION),
-          CAST(new.raw_user_meta_data->>'lon' AS DOUBLE PRECISION)
+          CAST(NULLIF(new.raw_user_meta_data->>'lat', '') AS DOUBLE PRECISION),
+          CAST(NULLIF(new.raw_user_meta_data->>'lon', '') AS DOUBLE PRECISION)
       );
   ELSIF new.raw_user_meta_data->>'user_type' = 'BUYER' THEN
       INSERT INTO public.u_buyer_profile (user_id, primary_location_lat, primary_location_lon)
       VALUES (
           new.id,
-          CAST(new.raw_user_meta_data->>'lat' AS DOUBLE PRECISION),
-          CAST(new.raw_user_meta_data->>'lon' AS DOUBLE PRECISION)
+          CAST(NULLIF(new.raw_user_meta_data->>'lat', '') AS DOUBLE PRECISION),
+          CAST(NULLIF(new.raw_user_meta_data->>'lon', '') AS DOUBLE PRECISION)
       );
   END IF;
 

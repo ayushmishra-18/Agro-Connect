@@ -1,111 +1,147 @@
 # 🌱 Agro-Connect (V1)
 
-**Agro-Connect** is a comprehensive, production-ready Agritech platform engineered to bridge the digital divide for rural farmers. Featuring an **Offline-First Android App** and a glassmorphic **Next.js Web Dashboard**, the ecosystem empowers agricultural communities with localized, ML-driven price forecasting, marketplace access to buyers, integrated OSMMaps, and highly scalable offline caching.
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Web-2e7d32?style=for-the-badge)](https://github.com/ayushmishra-18/Agro-Connect)
+[![Tech Stack](https://img.shields.io/badge/Stack-Kotlin%20%7C%20Next.js%20%7C%20Supabase-1b5e20?style=for-the-badge)](https://github.com/ayushmishra-18/Agro-Connect)
+[![Status](https://img.shields.io/badge/Status-In%20Development-ffc107?style=for-the-badge)](https://github.com/ayushmishra-18/Agro-Connect)
+
+**Agro-Connect** is a professional-grade Agritech platform engineered to bridge the digital divide for rural farmers in India. By combining a **high-performance, offline-first Android application** with a **glassmorphic Next.js web dashboard**, the ecosystem provides localized, ML-driven price forecasting, peer-to-peer marketplace access, integrated mapping, and highly-scalable backend infrastructure.
+
+---
+
+## 🏗️ Visual Architecture
+
+```mermaid
+graph TD
+    subgraph "Mobile Client (Android Client)"
+        Mobile[Kotlin/Compose App]
+        RoomDB[Room SQLite Cache]
+        WorkManager[SyncWorker]
+        OSMDroid[OpenStreetMap]
+    end
+
+    subgraph "Web Dashboard (Next.js)"
+        Web[Next.js App]
+        Recharts[Interactive Predictions]
+        i18n[Multi-language (i18next)]
+    end
+
+    subgraph "Supabase Backend (SaaS)"
+        Auth[GoTrue Auth]
+        Postgres[(PostgreSQL + RLS)]
+        EdgeFunctions[Deno Edge Functions]
+    end
+
+    subgraph "External Data APIs"
+        Agmarknet[AGMARKNET Crop Prices]
+        MeteoAPI[Open-Meteo Weather]
+        GeoAPI[BigDataCloud Geo]
+    end
+
+    %% Flow: Ingestion
+    Agmarknet --> EdgeFunctions
+    MeteoAPI --> EdgeFunctions
+    GeoAPI --> EdgeFunctions
+    EdgeFunctions --> Postgres
+
+    %% Flow: Serving
+    Postgres <--> Mobile
+    Postgres <--> Web
+    
+    %% Flow: Offline-First
+    RoomDB <--> Mobile
+    WorkManager <--> RoomDB
+    WorkManager <--> Postgres
+
+    style RoomDB fill:#2e7d32,stroke:#1b5e20,color:#fff
+    style Postgres fill:#004d40,stroke:#00251a,color:#fff
+```
 
 ---
 
 ## 🚀 Key Features
 
-### 🛒 1. Peer-to-Peer Marketplace
-Farmers and buyers can connect directly using the integrated marketplace. Contains dynamic escrow status monitoring, a robust shopping cart, and offline-compatible payment confirmation flows.
+### 📈 1. 7-Day ML Price Predictions
+An internal ML pipeline processes daily crop variables to project 7-day crop price forecasts.
+- **Deep Mobile Integration**: The `PredictionsScreen` provides dynamic dropdowns for crops and mandis, with location-based auto-selection of the nearest market.
+- **Interactive Visuals**: The web dashboard utilizes **Recharts** to render `AreaChart` components for historical price trends.
+- **Confidence Scoring**: Includes tiered confidence scores (e.g., 80%+) and identified "Sell Windows" for optimal profitability.
 
-### 📈 2. AI 7-Day Price Predictions (PFE)
-Supabase Edge Functions process daily crop variables, running an internal ML pipeline to project 7-day crop price forecasts (`p_prediction_outputs`) directly onto interactive `recharts` overlays and mobile grids. Includes "confidence scores" and calculated ideal "sell windows".
+### 📶 2. Absolute Offline-First Engineering
+Designed for rural 2G/3G connectivity using standard Android persistence patterns:
+- **Room Persistence**: The `AppDatabase` manages entities for `Mandi`, `Advisory`, `Prediction`, and `Weather`.
+- **Intelligent Repository**: `AgroRepository` implements a "network-first with local fallback" strategy, ensuring zero downtime.
+- **Automatic Sync**: `SyncWorker` (WorkManager) orchestrates invisible data synchronization every 12 hours.
 
-### 📶 3. Absolute Offline-First Experience (Room DB)
-Rural 2G endpoints shouldn't handicap farmers. The Android Mobile architecture heavily caches Marketplace listings, Mandi coordinates, Advisories, and 7-day weather predictions into a local **SQLite Room Database**.
-- `SyncWorker` powered by **WorkManager** quietly synchronizes background data states to Supabase every 12 hours.
+### 🌍 3. Quad-Language Support (i18n)
+Full localization parity across **English**, **Hindi**, and **Marathi** to maximize rural adoption.
+- **Mobile**: Uses native Android XML resources with a `LocaleHelper` for runtime language switching.
+- **Web**: Implements `react-i18next` with a comprehensive 400+ key translation library covering specific agritech jargon.
 
-### 🗺️ 4. Local Mandi GPS Mapping
-Users can visually browse surrounding crop markets. Uses **OSMDroid** native mapping components embedded directly into Android, calculating Euclidean and navigational paths without relying on Google Maps API keys.
+### 🗺️ 4. Hyper-Local Intelligence
+- **Weather Proxy**: A dedicated Edge Function fetches real-time data from **Open-Meteo**, mapping WMO codes to actionable farming advisories (e.g., "Heavy rain detected: delay pesticide spray").
+- **Mandi Discovery**: Uses **OSMDroid** for decentralized mapping, calculating Euclidean distances to markets without reliance on proprietary map APIs.
 
-### 🌍 5. Deep Multi-Lingual Integration (i18n)
-Both Web and Mobile platforms natively support English (`en`), Hindi (`hi`), and Marathi (`mr`). Powered by `react-i18next` for seamless client-side hydration without Next.js mismatch errors, and localized Android String resources.
+### 🛒 5. Peer-to-Peer Marketplace
+A secure transactional layer for crops and equipment:
+- **Escrow Logic**: Tables for `m_listings`, `m_cart_items`, and `m_orders` manage the commercial lifecycle.
+- **Security**: Hardened via **Row-Level Security (RLS)** explicitly forbidding unauthorized data modifications.
 
 ---
 
 ## 🛠️ Technology Stack
 
-### 📱 Full-Stack Architecture
-- **Web Frontend**: React, Next.js (App Router), Lucide Icons, `react-i18next`, Recharts.
-- **Mobile Client**: Kotlin, Jetpack Compose, Navigation-Compose, Room (SQLite), Ktor HTTP, Kotlinx-Serialization.
-- **Backend Infrastructure**: Supabase (PostgreSQL), GoTrue Auth, Edge Functions (Deno).
+### **Mobile (Android Client)**
+- **UI Framework**: Jetpack Compose (Material 3).
+- **Network**: Ktor Client with Kotlinx Serialization.
+- **Persistence**: Room Database (SQLite).
+- **Async & Scheduling**: Kotlin Coroutines & WorkManager.
+- **Dependency Injection**: Manual injection via `AgroRepository` singleton pattern.
 
-### 🛡️ Security & Accessibility Compliance (WCAG AA)
-Agro-Connect adheres to top-tier enterprise compliance metrics.
-- **A11y Validated**: Dynamic regex-inserted `contentDescription` properties across all Jetpack Compose icons to fully support TalkBack. Material Design enforces minimum 48x48dp touch targets. Web boundaries utilize strict explicit `<label htmlFor="...">` and `aria-label` tags.
-- **Network Defense**: Next.js Edge APIs intercept traffic to apply fixed-window Rate Limiting & injection-blocking `Content-Security-Policy` headers.
-- **Database Hardening (RLS)**: Row-Level Security policies strictly enforce identity ownership. Predictive ML schemas prohibit unprotected `WITH CHECK (true)` vectors, offloading insertions securely to internal Service Roles. 
+### **Web (Dashboard)**
+- **Framework**: Next.js 14+ (App Router).
+- **Visualization**: Recharts (Dynamic Area/Line Charts).
+- **Internationalization**: i18next & react-i18next.
+- **Styling**: Vanilla CSS with comprehensive Design Tokens.
+
+### **Backend (Supabase Infrastructure)**
+- **Database**: PostgreSQL (Relational) with custom PL/pgSQL triggers for auto-profile generation.
+- **Deno Runtime**: Edge Functions handle `weather-proxy`, `sync-market-prices`, and `predict-prices`.
+- **Security**: Supabase Auth (GoTrue) integration for identity-scoped data access.
 
 ---
 
 ## 📦 Getting Started
 
 ### Prerequisites
-- **Node.js**: v18 or newer
-- **Android Studio**: Latest release (Ladybug/Koala)
-- **Java Development Kit (JDK)**: Version 17
-- **Supabase**: An active [Supabase](https://supabase.com/) project to host the PostgreSQL database, GoTrue Auth layer, and Edge Functions.
+- **Android Studio**: Ladybug, Koala, or newer.
+- **Node.js**: v18+ (LTS recommended).
+- **Java**: JDK 17+.
 
-### 1. Web Dashboard (Next.js)
+### Quick Installation
 
-1. **Clone & Navigate**:
-   ```bash
-   git clone https://github.com/ayushmishra-18/Agro-Connect.git
-   cd "Agro-Connect/web-dashboard"
-   ```
+1.  **Clone the Repository**:
+    ```bash
+    git clone https://github.com/ayushmishra-18/Agro-Connect.git
+    cd Agro-Connect
+    ```
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+2.  **Web Dashboard Setup**:
+    ```bash
+    cd web-dashboard
+    npm install
+    # Set up .env.local with Supabase URL & Anon Key
+    npm run dev
+    ```
 
-3. **Configure Environment Variables**:
-   Create a `.env.local` file in the root of the `web-dashboard` directory containing your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
-   NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-api-key"
-   ```
-
-4. **Launch Local Server**:
-   ```bash
-   npm run dev
-   ```
-   *The application will boot and become accessible at `http://localhost:3000`.*
-
-### 2. Android Client (Kotlin)
-
-1. **Import the Project**:
-   Launch **Android Studio** and select `Open`. Navigate to the cloned repository and select the `mobile-android` directory. Allow Gradle to execute its initial sync.
-
-2. **Configure SDK & Local Properties**:
-   Open the `local.properties` file in the `mobile-android` root and define your Supabase endpoints. These are securely injected into `BuildConfig` during compilation:
-   ```properties
-   SUPABASE_URL="https://[YOUR_PROJECT_ID].supabase.co"
-   SUPABASE_ANKEY="your-anon-api-key"
-   ```
-
-3. **Compile and Execute**:
-   - Connect a physical Android device (via USB Debugging) or start an Android Virtual Device (AVD).
-   - Click the green **Run 'app'** button in the top toolbar. Or, you can execute the command-line equivalent:
-     ```bash
-     ./gradlew assembleDebug
-     ```
-
----
-
-## 📋 Database Schema Context
-
-> 💡 **Bring Your Own Database:** When deploying locally, you cannot use the production database. Execute the provided [`database_schema.sql`](./database_schema.sql) file inside the SQL Editor of your new empty Supabase project to instantly scaffold the architecture below, including tables, relationships, triggers, and Row Level Security (RLS) policies.
-
-- `u_users` (UUID auth.users relational mapping)
-- `u_farmer_profile` & `u_buyer_profile` (Identity & Telemetry data)
-- `c_crops` & `c_mandis` (Foundational master records)
-- `m_listings`, `m_cart_items`, `m_orders` (Escrow/Payment structure)
-- `e_weather_data` & `e_fuel_prices` (Exogenous environmental variables)
-- `p_daily_market_prices` & `p_prediction_outputs` (ML Data Ingestion pipelines)
+3.  **Android Client Setup**:
+    - Open `mobile-android` in Android Studio.
+    - Set `SUPABASE_URL` and `SUPABASE_ANKEY` in your `local.properties` file.
+    - Sync Gradle and Run on an emulator or physical device.
 
 ---
 
 ## 🤝 Contributing
-For feature additions, branch off using a standardized `feature/` taxonomy (e.g., `feature/offline-sync`). Please consult the core issue tracker prior to executing significant architecture forks (especially regarding Subabase edge-functions or local Room persistence graphs). Ensure that code passes frontend ESLint tests and Android `lintRelease` prior to generating Pull Requests.
+Contributions are welcome! Please follow the `feature/` taxonomy for branches and ensure all code passes Android `lintRelease` and Web ESLint before submitting a PR.
+
+## 📄 License
+This project is licensed under the [MIT License](./LICENSE).
